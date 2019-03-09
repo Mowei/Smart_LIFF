@@ -100,6 +100,11 @@
 
             function doFail(e){
                 LogsQueue.AddLog(e.errorMessage);
+                try{
+                    liff.closeWindow();
+                } catch (e) {
+                    LogsQueue.AddLog("No Support LIFF closeWindow");
+                }
             }
 
             // called when the client loses its connection
@@ -107,6 +112,11 @@
                 if (responseObject.errorCode !== 0) {
                     let msg ="onConnectionLost:"+responseObject.errorMessage;
                     LogsQueue.AddLog(msg);
+                    try{
+                        liff.closeWindow();
+                    } catch (e) {
+                        LogsQueue.AddLog("No Support LIFF closeWindow");
+                    }
                 }
             }
 
@@ -141,13 +151,17 @@
         $(function () {
             //init LIFF            
             liff.init(function (data) {
-                initializeMQTT(data);
-                liff.getProfile().then(
-                profile=> {
-                    userName = profile.displayName;
-                    $("#userName").html(userName);
+                try{
+                    liff.getProfile().then(
+                        profile=> {
+                            userName = profile.displayName;
+                            $("#userName").html(userName);
+                        }
+                    );
+                    initializeMQTT(data);
+                } catch (e) {
+                    LogsQueue.AddLog("No Support LIFF");
                 }
-            );
             },function (err) {
                 LogsQueue.AddLog("LIFF ERR");
                 $("#userName").html(userName);
