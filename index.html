@@ -74,6 +74,7 @@
 
         var MachineKey = {
             715180: "主控制(一)",
+            FISH_715180: "主控制(一)",
             PIN5: "水車一",
             PIN6: "水車二"
         };
@@ -182,9 +183,11 @@
                 switch (payloadString) {
                     case "WHOAMI":
                         MQTTSend(userName, destinationName);
+                        LogsQueue.AddLog(payloadString);
                         break;
                     case "GETTIME":
-                        MQTTSend((new Date()).toLocaleString(), destinationName);
+                        MQTTSend(userName + " : " + (new Date()).toLocaleString(), destinationName);
+                        LogsQueue.AddLog(payloadString);
                         break;
                     default:
                         //PIN5 READ 0 OK
