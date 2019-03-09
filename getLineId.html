@@ -10,7 +10,7 @@
         $(function () {
             //init LIFF
             liff.init(function (data) {
-                $('#userid').val(data.context.userId);
+                document.getElementById("userid").value = data.context.userId;
             });
         });
     </script>
