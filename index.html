@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>test LIFF</title>
+    <title>魚塭管理 - LIFF</title>
     <script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
@@ -19,6 +19,9 @@
     </style>
     <script>
         var client;
+        var userName = "User1";
+        var subscribeName ="MOWEI/FISH";
+        var destinationName ="MOWEI/FISH";
         var readPump5 = "715180 pin5 read";
         var readPump6 = "715180 pin6 read";
 
@@ -45,19 +48,30 @@
         function initializeMQTT(data) {
             //GET userID
             let userId = data.context.userId;
+            let acc ="";
+            let pass ="";
+            
             //取得QueryString
             let urlParams = new URLSearchParams(window.location.search);
-
+            let regexp = /^pumpid=(.*)&pass=(.*)$/g;
+            let getuser = regexp.exec(urlParams.toString());
+            if(getuser){
+                acc=getuser[1];
+                pass=getuser[2];
+            }else{
+                acc=userId.substr(0,8);
+                pass=userId.substr(-8,8);
+            }
             // Create a client instance
-            client = new Paho.MQTT.Client("m12.cloudmqtt.com", 35953,userId.substr(0,8));
+            client = new Paho.MQTT.Client("m12.cloudmqtt.com", 35953,acc);
 
             // set callback handlers
             client.onConnectionLost = onConnectionLost;
             client.onMessageArrived = onMessageArrived;
             var options = {
                 useSSL: true,
-                userName: userId.substr(0,8),
-                password: userId.substr(-8,8),
+                userName: acc,
+                password: pass,
                 onSuccess:onConnect,
                 onFailure:doFail
             }
@@ -69,8 +83,8 @@
             function onConnect() {
                 // Once a connection has been made, make a subscription and send a message.
                 console.log("onConnect");
-                client.subscribe("MOWEI/FISH");
-                message = new Paho.MQTT.Message("Hello CloudMQTT");
+                client.subscribe(subscribeName);
+                message = new Paho.MQTT.Message("Hello "+userName+" Join CloudMQTT");
                 message.destinationName = "MOWEI/FISH";
                 client.send(message);
             }
@@ -104,26 +118,29 @@
             }
         }
 
-        function MQTTSend(Message,DestinationName) {
+        function MQTTSend(Message,Destination) {
             message = new Paho.MQTT.Message(Message);
-            message.destinationName = DestinationName;
+            message.destinationName = Destination;
             client.send(message);
         }
 
         function getPumpStatus() {
-            MQTTSend(readPump5,"MOWEI/FISH");
-            MQTTSend(readPump6,"MOWEI/FISH");
+            MQTTSend(readPump5,destinationName);
+            MQTTSend(readPump6,destinationName);
         }
         //ready
         $(function () {
-            //TEST
-            /*
-            data={};data.context={};data.context.userId="12345678910abcdefg";
-            initializeMQTT(data);
-            */
+            //Init TEST
+            //initializeMQTT({context:{userId:"user"}});
             
-            //init LIFF
+            //init LIFF            
             liff.init(function (data) {
+                liff.getProfile().then(
+                    profile=> {
+                        userName = profile.displayName;
+                        $("#userName").html(userName);
+                    }
+                );
                 initializeMQTT(data);
             });
             
@@ -134,7 +151,7 @@
 
             //SendMsg
             $('#ButtonSendMsg').click(function () {
-                MQTTSend($("#mqttMsg").val(),"MOWEI/FISH");
+                MQTTSend($("#mqttMsg").val(),destinationName);
             });
             
         });
@@ -144,7 +161,7 @@
     <div class="container">
         <div class="row" >
             <div class="col">
-                <div id="userId"></div>
+                <div id="userName" style="float: left;"></div>
                 <button class="btn btn-primary" id="ButtonReloadStatus" style="float: right;" >Reload</button>
             </div>
         </div>
