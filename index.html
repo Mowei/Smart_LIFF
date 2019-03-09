@@ -141,18 +141,19 @@
         $(function () {
             //init LIFF            
             liff.init(function (data) {
-                liff.getProfile().then(
-                    profile=> {
-                        userName = profile.displayName;
-                        $("#userName").html(userName);
-                    }
-                );
                 initializeMQTT(data);
             },function (err) {
                 LogsQueue.AddLog("LIFF ERR");
                 $("#userName").html(userName);
                 initializeMQTT({context:{userId:""}});
             });
+
+            liff.getProfile().then(
+                profile=> {
+                    userName = profile.displayName;
+                    $("#userName").html(userName);
+                }
+            );
             
             //ReloadStatus
             $('#ButtonReloadStatus').click(function () {
