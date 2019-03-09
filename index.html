@@ -17,7 +17,7 @@
         }
 
         .row {
-            margin: 5px;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -25,7 +25,7 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <div id="userName" style="float: left;"></div>
+                <h4 id="userName" style="float: left;"></h4>
                 <button class="btn btn-primary" id="ButtonReloadStatus" style="float: right;">立即更新</button>
             </div>
         </div>
@@ -46,7 +46,7 @@
         <div class="row">
             <div class="col">
                 <div class="input-group">
-                    <input id="mqttMsg" type="text" class="form-control" value="whoami" />
+                    <input id="mqttMsg" type="text" class="form-control" />
                     <div class="input-group-append">
                         <button id="ButtonSendMsg" class="btn btn-primary" type="button">傳送</button>
                     </div>
@@ -55,14 +55,12 @@
         </div>
         <div class="row">
             <div class="col">
-                <div class="cloud-box">
-                    <table class="table border">
-                        <thead>
-                            <tr><th>訊息</th></tr>
-                        </thead>
-                        <tbody id="messageLog"></tbody>
-                    </table>
-                </div>
+                <table class="table border">
+                    <thead>
+                        <tr><th>訊息</th></tr>
+                    </thead>
+                    <tbody id="messageLog"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -140,9 +138,9 @@
             // called when the client connects
             function onConnect() {
                 // Once a connection has been made, make a subscription and send a message.
-                LogsQueue.AddLog("onConnect");
+                LogsQueue.AddLog("連線成功");
                 client.subscribe(subscribeName);
-                MQTTSend("Hello " + userName + " Join CloudMQTT", destinationName);
+                MQTTSend(userName + " Join !", destinationName);
                 getPumpStatus();
                 setInterval(getPumpStatus, 180000);
             }
@@ -154,18 +152,20 @@
                 } catch (e) {
                     LogsQueue.AddLog("No Support LIFF closeWindow");
                 }
+                window.location.reload(false); 
             }
 
             // called when the client loses its connection
             function onConnectionLost(responseObject) {
                 if (responseObject.errorCode !== 0) {
-                    let msg = "onConnectionLost:" + responseObject.errorMessage;
+                    let msg = "斷線:" + responseObject.errorMessage;
                     LogsQueue.AddLog(msg);
                     try {
                         liff.closeWindow();
                     } catch (e) {
                         LogsQueue.AddLog("No Support LIFF closeWindow");
                     }
+                    window.location.reload(false); 
                 }
             }
 
@@ -212,7 +212,7 @@
                     LogsQueue.AddLog("No Support LIFF");
                 }
             }, function (err) {
-                LogsQueue.AddLog("LIFF ERR");
+                LogsQueue.AddLog("LIFF 錯誤");
                 $("#userName").html(userName);
                 initializeMQTT({ context: { userId: "" } });
             });
