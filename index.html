@@ -93,9 +93,9 @@
                 // Once a connection has been made, make a subscription and send a message.
                 LogsQueue.AddLog("onConnect");
                 client.subscribe(subscribeName);
-                message = new Paho.MQTT.Message("Hello "+userName+" Join CloudMQTT");
-                message.destinationName = "MOWEI/FISH";
-                client.send(message);
+                MQTTSend("Hello "+userName+" Join CloudMQTT",destinationName);
+                getPumpStatus();
+                setInterval(getPumpStatus, 180000);
             }
 
             function doFail(e){
