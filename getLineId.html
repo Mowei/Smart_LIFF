@@ -1,0 +1,26 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>GetLineID - LIFF</title>
+    <script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
+    <script>
+        //ready
+        $(function () {
+            //init LIFF
+            liff.init(function (data) {
+                $('#userid').val(data.context.userId);
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="row">
+        <div class="col-md">
+            <label>user id:</label>
+            <input class="form-control" type="text" id="userid" />
+        </div>
+    </div>
+</body>
+</html>
