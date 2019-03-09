@@ -72,6 +72,12 @@
         var readPump5 = "715180 pin5 read";
         var readPump6 = "715180 pin6 read";
 
+        var MachineKey = {
+            715180: "主控制(一)",
+            PIN5: "水車一",
+            PIN6: "水車二"
+        };
+
         var LogsQueue = {
             Logs: new Array(),
             QueueMax: 20,
@@ -171,17 +177,28 @@
 
             // called when a message arrives
             function onMessageArrived(message) {
-                let msg = message.payloadString;
-                LogsQueue.AddLog(msg);
+                let payloadString = message.payloadString.trim().toUpperCase();
 
-                //PIN5 READ 0 OK
-                let regexp = /^PIN(\d) READ (\d) OK$/g;
-                let getMsg = regexp.exec(message.payloadString);
-                if (getMsg) {
-                    let PumpNum = getMsg[1];
-                    let PumpOnOff = getMsg[2];
-                    $("#pump" + PumpNum).bootstrapToggle(PumpOnOff == "0" ? "off" : "on");
-                    console.log(PumpNum + "," + PumpOnOff);
+                switch (payloadString) {
+                    case "WHOAMI":
+                        MQTTSend(userName, destinationName);
+                        break;
+                    case "GETTIME":
+                        MQTTSend((new Date()).toLocaleString(), destinationName);
+                        break;
+                    default:
+                        //PIN5 READ 0 OK
+                        let regexp = /^PIN(\d) READ (\d) OK$/g;
+                        let getMsg = regexp.exec(payloadString);
+                        if (getMsg) {
+                            let PumpNum = getMsg[1];
+                            let PumpOnOff = getMsg[2];
+                            $("#pump" + PumpNum).bootstrapToggle(PumpOnOff == "0" ? "off" : "on");
+                            LogsQueue.AddLog(MachineKey["PIN" + PumpNum] + " 是 " + (PumpOnOff == "0" ? "關" : "開") + " 的");
+                            //console.log(PumpNum + "," + PumpOnOff);
+                        } else {
+                            LogsQueue.AddLog(payloadString);
+                        }
                 }
             }
         }
@@ -212,7 +229,7 @@
                     LogsQueue.AddLog("No Support LIFF");
                 }
             }, function (err) {
-                LogsQueue.AddLog("LIFF 錯誤");
+                LogsQueue.AddLog("LIFF 載入錯誤");
                 $("#userName").html(userName);
                 initializeMQTT({ context: { userId: "" } });
             });
