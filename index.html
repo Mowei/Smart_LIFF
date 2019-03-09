@@ -13,9 +13,9 @@
     <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.4.0/css/bootstrap4-toggle.min.css" rel="stylesheet">  
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.4.0/js/bootstrap4-toggle.min.js"></script>
     <style>
-    .row {
-        margin:5px;
-    }
+        .row {
+            margin:5px;
+        }
     </style>
     <script>
         var client;
@@ -27,7 +27,7 @@
 
         var LogsQueue = {
             Logs : new Array(),
-            QueueMax : 10,        
+            QueueMax : 20,        
             AddLog : function(msg){
                 let count = this.Logs.unshift(msg);
                 if(count > this.QueueMax){
@@ -63,6 +63,9 @@
                 pass=userId.substr(-8,8);
             }
 
+            if(!acc){
+                acc = window.prompt("請輸入帳號");
+            }
             //Check Password
             if(!pass){
                 pass = window.prompt("請輸入密碼");
@@ -136,9 +139,6 @@
         }
         //ready
         $(function () {
-            //Init TEST
-            //initializeMQTT({context:{userId:"user"}});
-            
             //init LIFF            
             liff.init(function (data) {
                 liff.getProfile().then(
@@ -148,6 +148,10 @@
                     }
                 );
                 initializeMQTT(data);
+            },function (err) {
+                LogsQueue.AddLog("LIFF ERR");
+                $("#userName").html(userName);
+                initializeMQTT({context:{userId:""}});
             });
             
             //ReloadStatus
