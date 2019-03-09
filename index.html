@@ -142,18 +142,17 @@
             //init LIFF            
             liff.init(function (data) {
                 initializeMQTT(data);
-            },function (err) {
-                LogsQueue.AddLog("LIFF ERR");
-                $("#userName").html(userName);
-                initializeMQTT({context:{userId:""}});
-            });
-
-            liff.getProfile().then(
+                liff.getProfile().then(
                 profile=> {
                     userName = profile.displayName;
                     $("#userName").html(userName);
                 }
             );
+            },function (err) {
+                LogsQueue.AddLog("LIFF ERR");
+                $("#userName").html(userName);
+                initializeMQTT({context:{userId:""}});
+            });
             
             //ReloadStatus
             $('#ButtonReloadStatus').click(function () {
