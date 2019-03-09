@@ -212,7 +212,7 @@
                 switch (count) {
                     case 2:
                         //命令語法 3段
-                        regexp = /^(.*) (.*) (.*)$/g;
+                        regexp = /^(.*) (PIN\d) (.*)$/g;
                         getMsg = regexp.exec(payloadString);
                         if (getMsg) {
                             let Device = getMsg[1];
