@@ -62,6 +62,12 @@
                 acc=userId.substr(0,8);
                 pass=userId.substr(-8,8);
             }
+
+            //Check Password
+            if(!pass){
+                pass = window.prompt("請輸入密碼");
+            }
+
             // Create a client instance
             client = new Paho.MQTT.Client("m12.cloudmqtt.com", 35953,acc);
 
@@ -82,7 +88,7 @@
             // called when the client connects
             function onConnect() {
                 // Once a connection has been made, make a subscription and send a message.
-                console.log("onConnect");
+                LogsQueue.AddLog("onConnect"));
                 client.subscribe(subscribeName);
                 message = new Paho.MQTT.Message("Hello "+userName+" Join CloudMQTT");
                 message.destinationName = "MOWEI/FISH";
@@ -90,7 +96,7 @@
             }
 
             function doFail(e){
-                console.log(e);
+                LogsQueue.AddLog(e);
             }
 
             // called when the client loses its connection
