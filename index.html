@@ -42,6 +42,12 @@
                     <input id="pump6" type="checkbox" data-toggle="toggle">
                 </div>
             </div>
+            <div class="col">
+                <div class="border border-success rounded">
+                    <label>水車三</label>
+                    <input id="pump7" type="checkbox" data-toggle="toggle">
+                </div>
+            </div>
         </div>
         <div class="row">
             <div class="col">
@@ -69,16 +75,24 @@
         var userName = "User";
         var subscribeName = "MOWEI/FISH";
         var destinationName = "MOWEI/FISH";
-        var readPump5 = "715180 pin5 read";
-        var readPump6 = "715180 pin6 read";
 
+        //關鍵字
         var MachineKey = {
+            0: "關閉的",
+            1: "開啟的",
+            READ: "讀取",
+            ON: "開啟",
+            OFF: "關閉",
+            OK: "成功",
             715180: "主控制(一)",
             FISH_715180: "主控制(一)",
             PIN5: "水車一",
-            PIN6: "水車二"
+            PIN6: "水車二",
+            PIN7: "水車三(不使用)",
+            COMMAND: "DEVICE TARGET ACT"
         };
 
+        //訊息列
         var LogsQueue = {
             Logs: new Array(),
             QueueMax: 20,
@@ -147,7 +161,7 @@
                 // Once a connection has been made, make a subscription and send a message.
                 LogsQueue.AddLog("連線成功");
                 client.subscribe(subscribeName);
-                MQTTSend(userName + " Join !", destinationName);
+                MQTTSend(userName + " Join!", destinationName);
                 getPumpStatus();
                 setInterval(getPumpStatus, 180000);
             }
@@ -159,7 +173,7 @@
                 } catch (e) {
                     LogsQueue.AddLog("No Support LIFF closeWindow");
                 }
-                window.location.reload(false); 
+                //window.location.reload(false);
             }
 
             // called when the client loses its connection
@@ -172,36 +186,64 @@
                     } catch (e) {
                         LogsQueue.AddLog("No Support LIFF closeWindow");
                     }
-                    window.location.reload(false); 
+                    //window.location.reload(false);
                 }
             }
 
             // called when a message arrives
             function onMessageArrived(message) {
-                let payloadString = message.payloadString.trim().toUpperCase();
+                //廣播語法 1段
+                //WHOAMI
+                //GETTIME
 
-                switch (payloadString) {
-                    case "WHOAMI":
-                        MQTTSend(userName, destinationName);
-                        LogsQueue.AddLog(payloadString);
-                        break;
-                    case "GETTIME":
-                        MQTTSend(userName + " : " + (new Date()).toLocaleString(), destinationName);
-                        LogsQueue.AddLog(payloadString);
-                        break;
-                    default:
-                        //PIN5 READ 0 OK
-                        let regexp = /^PIN(\d) READ (\d) OK$/g;
-                        let getMsg = regexp.exec(payloadString);
+                //命令語法 3段
+                //715180 PIN6 READ
+                //715180 PIN7 ON
+
+                //回應語法 4段
+                //PIN5 READ 0 OK
+                //PIN7 ON 1 OK
+                //PIN7 OFF 0 OK
+                let payloadString = message.payloadString.trim().toUpperCase();
+                var count = (payloadString.match(/ /g) || []).length;
+                console.log(payloadString, count);
+                let regexp;
+                let getMsg;
+                switch (count) {
+                    case 2:
+                        //命令語法 3段
+                        regexp = /^(.*) (.*) (.*)$/g;
+                        getMsg = regexp.exec(payloadString);
+                        if (getMsg) {
+                            let Device = getMsg[1];
+                            let PumpNum = getMsg[2];
+                            let act = getMsg[3];
+                            LogsQueue.AddLog(/*MachineKey[Device] +*/ MachineKey[PumpNum] + MachineKey[act]);
+                            break;
+                        }
+                    case 3:
+                        //回應語法 4段
+                        regexp = /^PIN(\d) (.*) (\d) (.*)$/g;
+                        getMsg = regexp.exec(payloadString);
                         if (getMsg) {
                             let PumpNum = getMsg[1];
-                            let PumpOnOff = getMsg[2];
-                            $("#pump" + PumpNum).bootstrapToggle(PumpOnOff == "0" ? "off" : "on");
-                            LogsQueue.AddLog(MachineKey["PIN" + PumpNum] + " 是 " + (PumpOnOff == "0" ? "關" : "開") + " 的");
-                            //console.log(PumpNum + "," + PumpOnOff);
-                        } else {
-                            LogsQueue.AddLog(payloadString);
+                            let act = getMsg[2];
+                            let PumpOnOff = getMsg[3];
+                            let actStatus = getMsg[4];
+                            ShowToggleStatus("pump" + PumpNum, PumpOnOff);
+                            LogsQueue.AddLog("[" + MachineKey[actStatus] + "]" + MachineKey[act] + MachineKey["PIN" + PumpNum] + ":" + MachineKey[PumpOnOff]);
+                            break;
                         }
+                    case 0:
+                        //廣播語法 1段
+                        if (payloadString == "WHOAMI") {
+                            MQTTSend(userName, destinationName);
+                        } else if (payloadString == "GETTIME") {
+                            MQTTSend(userName + " : " + (new Date()).toLocaleString(), destinationName);
+                        }
+                    default:
+                        LogsQueue.AddLog(payloadString);
+
                 }
             }
         }
@@ -212,11 +254,48 @@
             client.send(message);
         }
 
+        //ReloadAllStatus
         function getPumpStatus() {
-            MQTTSend(readPump5, destinationName);
-            MQTTSend(readPump6, destinationName);
+            sendCommand(5, "READ");
+            sendCommand(6, "READ");
+            sendCommand(7, "READ");
         }
-        //ready
+
+        function sendCommand(TARGET, ACT) {
+            let commandString = MachineKey["COMMAND"];
+            commandString = commandString.replace("DEVICE", "715180");
+            commandString = commandString.replace("TARGET", "PIN" + TARGET);
+            commandString = commandString.replace("ACT", ACT);
+            MQTTSend(commandString, destinationName);
+        }
+
+        //開關事件
+        function ToggleClick() {
+            var $this = $(this);
+            let toggleId = this.getAttribute('id').toUpperCase();
+            let regexp = /^PUMP(.*)$/g;
+            let getid = regexp.exec(toggleId);
+            if (getid) {
+                let tId = getid[1];
+                if ($(this).prop("checked") == true) {
+                    sendCommand(tId, "ON");
+                } else {
+                    sendCommand(tId, "OFF");
+                }
+            }
+        }
+
+        function ShowToggleStatus(name, status) {
+            let cToggle = $("#" + name);
+            cToggle.off('change'); //先關閉事件。
+            let nowStatus = cToggle.prop("checked") == true ? "1" : "0";
+            if (nowStatus != status) {
+                cToggle.bootstrapToggle(status == "0" ? "off" : "on");
+            }
+            cToggle.on('change', ToggleClick);
+        }
+
+        //生命之初
         $(function () {
             //init LIFF
             liff.init(function (data) {
@@ -245,7 +324,19 @@
             //SendMsg
             $('#ButtonSendMsg').click(function () {
                 MQTTSend($("#mqttMsg").val(), destinationName);
+                $('#mqttMsg').val("");
             });
+            $('#mqttMsg').keyup(function (event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                    $('#ButtonSendMsg').click();
+                }
+            });
+
+            //按鈕事件
+            $('#pump5').change(ToggleClick);
+            $('#pump6').change(ToggleClick);
+            $('#pump7').change(ToggleClick);
         });
     </script>
 </body>
