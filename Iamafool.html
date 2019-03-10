@@ -14,10 +14,11 @@
                 //取得User Proile
                 liff.getProfile().then(
                     profile => {
+                        $("#who").html(profile.displayName);
                         liff.sendMessages([
                             {
                                 type: 'text',
-                                text: '我' + profile.displayName + '是笨蛋'
+                                text: '我' + $("#who").html() + '是笨蛋'
                             }
                         ]);
                     }
@@ -28,5 +29,6 @@
     </script>
 </head>
 <body>
+    <div id="who"></div>
 </body>
 </html>
