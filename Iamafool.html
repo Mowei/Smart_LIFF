@@ -10,25 +10,17 @@
         //ready
         $(function () {
             //init LIFF
-            liff.init(function (data) {
-                //取得User Proile
-                liff.getProfile().then(
-                    profile => {
-                        $("#who").html(profile.displayName);
-                    }
-                );
-                liff.sendMessages([
-                    {
-                        type: 'text',
-                        text: '我' + $("#who").html() + '是笨蛋'
-                    }
-                ]);
-                liff.closeWindow();
-            });
+            liff.init();
+            liff.sendMessages([
+                {
+                    type: 'text',
+                    text: '我是笨蛋'
+                }
+            ]);
+            liff.closeWindow();
         });
     </script>
 </head>
 <body>
-    <div id="who"></div>
 </body>
 </html>
