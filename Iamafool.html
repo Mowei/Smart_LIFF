@@ -10,14 +10,15 @@
         //ready
         $(function () {
             //init LIFF
-            liff.init();
-            liff.sendMessages([
-                {
-                    type: 'text',
-                    text: '我是笨蛋'
-                }
-            ]);
-            liff.closeWindow();
+            liff.init(function (data) {
+                liff.sendMessages([
+                    {
+                        type: 'text',
+                        text: '我是笨蛋'
+                    }
+                ]);
+                liff.closeWindow();
+            });
         });
     </script>
 </head>
