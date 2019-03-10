@@ -15,15 +15,15 @@
                 liff.getProfile().then(
                     profile => {
                         $("#who").html(profile.displayName);
-                        liff.sendMessages([
-                            {
-                                type: 'text',
-                                text: '我' + $("#who").html() + '是笨蛋'
-                            }
-                        ]);
-                        liff.closeWindow();
                     }
                 );
+                liff.sendMessages([
+                    {
+                        type: 'text',
+                        text: '我' + $("#who").html() + '是笨蛋'
+                    }
+                ]);
+                liff.closeWindow();
             });
         });
     </script>
