@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>笨蛋</title>
+    <script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script>
+        //ready
+        $(function () {
+            //init LIFF
+            liff.init();
+            liff.getProfile().then(
+                profile => {
+                    $("#who").html(profile.displayName);
+                }
+            );
+            liff.sendMessages([
+                {
+                    type: 'text',
+                    text: '我' + $("#who").html() + '是笨蛋'
+                }
+            ]);
+            liff.closeWindow();
+        });
+    </script>
+</head>
+<body>
+    <div id="who"></div>
+</body>
+</html>
